@@ -8,13 +8,73 @@ import {
 } from "@tabler/icons";
 
 export default function Home() {
-  const deleteTodo = (idx) => {};
+  const [todoInput , setTodoInput] = useState("");
+  const [todoList , setTodoList] = useState([]);
 
-  const markTodo = (idx) => {};
+  const onKeyUpHandler = (event) => {
+    if(event.key !== "Enter") return 
+    else{ if(todoInput === ""){
+          alert("Input cannot be empty")
+        }else{
+          const newTodos = [{text : todoInput , bool : false }, ...todoList]
+          setTodoList(newTodos)
+          setTodoInput("")
+        }
+      }
+    }
+    useEffect(() => {
+      const todoStr = localStorage.getItem("react-todos");
+      if (!todoStr) {
+        setTodoList([]);
+      } else {
+        setTodoList(JSON.parse(todoStr));
+      }
+    }, []);
+    const [isFirstRender, setIsfirstRender] = useState(true);
+  
+    useEffect(() => {
+      if (isFirstRender) {
+        setIsfirstRender(false);
+        return;
+      } else {
+        saveTodos();
+      }
+    }, [todoList]);
+    const saveTodos = () => {
+      const todoStr = JSON.stringify(todoList);
+      localStorage.setItem("react-todos", todoStr);
+    };
 
-  const moveUp = (idx) => {};
+  const deleteTodo = (idx) => {
+    todoList.splice(idx,1)
+    const newTodo = [...todoList]
+    setTodoList(newTodo)
+  };
 
-  const moveDown = (idx) => {};
+  const markTodo = (idx) => {
+    todoList[idx].bool = !todoList[idx].bool;
+    setTodoList([...todoList]);
+  };
+
+  const moveUp = (idx) => {
+    if(idx>0){
+      const newTodo = [...todoList]
+      const temp = newTodo[idx]
+      newTodo[idx] = newTodo[idx-1]
+      newTodo[idx-1] = temp
+      setTodoList(newTodo)
+    }
+  };
+
+  const moveDown = (idx) => {
+    if(idx < todoList.length -1){
+      const newTodo = [...todoList]
+      const temp = newTodo[idx]
+      newTodo[idx] = newTodo[idx+1]
+      newTodo[idx + 1] = temp
+      setTodoList(newTodo)
+    }
+  };
 
   return (
     <div>
@@ -28,40 +88,31 @@ export default function Home() {
         <input
           className="form-control mb-1 fs-4"
           placeholder="insert todo here..."
+          onChange={(event) => setTodoInput(event.target.value)}
+          value = {todoInput}
+          onKeyUp = {(event) => {
+             onKeyUpHandler(event);
+          
+          }
+        }
         />
-        {/* Todos */}
-        {/* Example 1 */}
-        <div className="border-bottom p-1 py-2 fs-2 d-flex gap-2">
-          <span className="me-auto">Todo</span>
-        </div>
-        {/* Example 2 */}
-        <div className="border-bottom p-1 py-2 fs-2 d-flex gap-2">
-          <span className="me-auto">Todo with buttons</span>
 
-          <button className="btn btn-success">
-            <IconCheck />
-          </button>
-          <button className="btn btn-secondary">
-            <IconArrowUp />
-          </button>
-          <button className="btn btn-secondary">
-            <IconArrowDown />
-          </button>
-          <button className="btn btn-danger">
-            <IconTrash />
-          </button>
-        </div>
+        {todoList.map((todo,i) => <Todo text= {todo.text} bool = {todo.bool} key={i} 
+                                   markTodo = {() => markTodo(i)}
+                                   deleteTodo = {() => deleteTodo(i)}
+                                   moveUp = {() => moveUp(i)}
+                                   moveDown = {()=>moveDown(i)}
 
-        {/* summary section */}
+        />)}
+        {/* <Summary />  */}
         <p className="text-center fs-4">
-          <span className="text-primary">All (2) </span>
-          <span className="text-warning">Pending (2) </span>
-          <span className="text-success">Completed (0)</span>
+          <span className="text-primary">All ({todoList.length}) </span>
+          <span className="text-warning">Pending ({todoList.filter((todo) => !todo.bool).length}){" "} </span>
+          <span className="text-success">Completed ({todoList.filter((todo) => todo.bool).length})</span>
         </p>
-
         {/* Made by section */}
         <p className="text-center mt-3 text-muted fst-italic">
-          made by Chayanin Suatap 12345679
+          made by Pearl Kurokami 640612094
         </p>
       </div>
     </div>
